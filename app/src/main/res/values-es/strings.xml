@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">NApplytics</string>
+
+    <string name="scheduler_version_name">1.0</string>
+    <string name="scheduler_priority">2</string>
+
+    <string name="userMeasurementFailureToast">El programador está ocupado, por favor, ejecute la medición más tarde.</string>
+    <string name="userMeasurementSuccessToast">La medición está en marcha. Los resultados se mostrarán en breve.</string>
+
+    <string name="result">%1$s \n%2$s \n\nVelocidad= %3$d kbps \nRSSI= %4$d dBm \nRSRP= %5$d dBm \n\nLos resultados obtenidos son:
+        \nHTTP 1.1= %6$s \nHTTP 1.1 TLS= %7$s \nHTTP 2= %8$s \n\nPor tanto, la mejor opción es: %9$s</string>
+
+    <string name="action">Acción:</string>
+    <string name="url">URL:</string>
+    <string name="run">EJECUTAR</string>
+</resources>
