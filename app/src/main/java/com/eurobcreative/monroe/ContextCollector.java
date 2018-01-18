@@ -30,7 +30,6 @@ public class ContextCollector {
     private long prevPktSend;
     private long prevPktRecv;
 
-
     public ContextCollector() {
         phoneUtils = PhoneUtils.getPhoneUtils();
         this.isRunning = false;
@@ -89,7 +88,6 @@ public class ContextCollector {
         if (prevSend == -1 || prevRecv == -1 || prevPktSend == -1 || prevPktRecv == -1
                 || intervalSend != 0 || intervalRecv != 0 || intervalPktSend != 0 || intervalPktRecv != 0) {
             currentContext.put("timestamp", (System.currentTimeMillis() * 1000) + "");
-//      currentContext.put("rssi", phoneUtils.getCurrentRssi() + "");
             currentContext.put("inc_total_bytes_send", intervalSend + "");
             currentContext.put("inc_total_bytes_recv", intervalRecv + "");
             currentContext.put("inc_total_pkt_send", intervalPktSend + "");
@@ -137,12 +135,6 @@ public class ContextCollector {
             contextResultArray.add(currentContext);
         }
 
-//    if(ipConnectivity.equals("")){
-//      ipConnectivity = phoneUtils.getIpConnectivity(); 
-//    }
-//    if(dnsConnectivity.equals("")){
-//      dnsConnectivity = phoneUtils.getDnResolvability();
-//    }
         if (ipConnectivity.equals("")) {
             ipConnectivity = "NOT SUPPORTED";
         }
@@ -151,24 +143,6 @@ public class ContextCollector {
         }
 
         return contextResultArray;
-    }
-
-    /**
-     * Return the current Ip connectivity
-     *
-     * @return A string that represents the current ip connectivity.
-     */
-    public String getCurrentIPConnectivity() {
-        return ipConnectivity;
-    }
-
-    /**
-     * Return the current DNS resolvability
-     *
-     * @return A string that represents the current DNS resolvability.
-     */
-    public String getCurrentDNSConnectivity() {
-        return dnsConnectivity;
     }
 
     private TimerTask timerTask = new TimerTask() {

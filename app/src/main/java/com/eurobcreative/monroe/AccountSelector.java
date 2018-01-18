@@ -36,7 +36,6 @@ import java.util.concurrent.Future;
  */
 public class AccountSelector {
     public static final String ACCOUNT_TYPE = "com.google";
-    private static final String ACCOUNT_NAME = "@google.com";
     // The authentication period in milliseconds
     private static final long AUTHENTICATE_PERIOD_MSEC = 24 * 3600 * 1000;
     private Context context;
@@ -108,7 +107,6 @@ public class AccountSelector {
             return true;
         }
         return false;
-
     }
 
     /**
@@ -285,7 +283,6 @@ public class AccountSelector {
             try {
                 String loginUrlPrefix = phoneUtils.getServerUrl() + "/_ah/login?continue=" + phoneUtils.getServerUrl() + "&action=Login&auth=";
                 // Don't follow redirects
-                //ALV httpClient.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, false);
                 URL urlObj = new URL(loginUrlPrefix + authToken);
                 Logger.i("Accessing: " + loginUrlPrefix + authToken);
                 HttpURLConnection urlConnection = (HttpURLConnection) urlObj.openConnection();
@@ -322,7 +319,6 @@ public class AccountSelector {
                 Logger.e("Failed to get login cookie", e);
                 throw new RuntimeException("Failed to get login cookie", e);
             } finally {
-                //ALV httpClient.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, true);
                 if (!success) {
                     resetCheckinFuture();
                 }

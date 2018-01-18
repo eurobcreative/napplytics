@@ -8,8 +8,5 @@ package com.eurobcreative.monroe;
 public interface PreemptibleMeasurementTask {
     boolean pause();
 
-    //returns the task's total running time before it get paused
-    long getTotalRunningTime();
-
     void updateTotalRunningTime(long duration);
 }

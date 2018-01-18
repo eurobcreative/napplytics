@@ -32,8 +32,7 @@ public class ResourceCapManager {
     private static int PROFILE3_LIMIT = 250 * 1024 * 1024;
     private static int PROFILE4_LIMIT = 500 * 1024 * 1024;
 
-    // Looking up various phone util data uses the network.
-    // It's hard to measure how much.
+    // Looking up various phone util data uses the network. It's hard to measure how much.
     // The good news is that this value is basically constant!
     public static int PHONEUTILCOST = 3 * 1024;
 
@@ -68,24 +67,6 @@ public class ResourceCapManager {
      * @param profile String describing the profile
      */
     public synchronized void setDataUsageLimit(MeasurementScheduler.DataUsageProfile profile) {
-        // if (dataLimitStr.equals("50 MB")) {
-        // dataLimit = PROFILE1_LIMIT;
-        // dataUsageProfile = DataUsageProfile.PROFILE1;
-        // } else if (dataLimitStr.equals("100 MB")) {
-        // dataLimit = PROFILE2_LIMIT;
-        // dataUsageProfile = DataUsageProfile.PROFILE2;
-        // } else if (dataLimitStr.equals("250 MB")) {
-        // dataLimit = PROFILE3_LIMIT;
-        // dataUsageProfile = DataUsageProfile.PROFILE3;
-        // } else if (dataLimitStr.equals("500 MB")) {
-        // dataLimit = PROFILE4_LIMIT;
-        // dataUsageProfile = DataUsageProfile.PROFILE4;
-        // } else if (dataLimitStr.equals("Unlimited")) {
-        // dataLimit = UNLIMITED_LIMIT;
-        // dataUsageProfile = DataUsageProfile.UNLIMITED;
-        // } else {
-        // Logger.w("Specified limit " + dataLimitStr + " not found!");
-        // }
         dataUsageProfile = profile;
         if (profile.equals(MeasurementScheduler.DataUsageProfile.PROFILE1)) {
             dataLimit = PROFILE1_LIMIT;
@@ -107,13 +88,6 @@ public class ResourceCapManager {
      */
     public synchronized int getDataLimit() {
         return this.dataLimit;
-    }
-
-    /**
-     * @return An enum representing the data usage limit.
-     */
-    public synchronized MeasurementScheduler.DataUsageProfile getDataUsageProfile() {
-        return this.dataUsageProfile;
     }
 
     /**
@@ -240,12 +214,10 @@ public class ResourceCapManager {
      * Otherwise, checks if we are over the limit yet or if we can run another task. If a new data
      * period needs to be started, we do that too. *
      *
-     * @param nextTaskType In the case of a TCP throughput task, we only run it if there is enough
-     *                     data left.
      * @return True if over the data limit
      * @throws IOException
      */
-    public boolean isOverDataLimit(String nextTaskType) throws IOException {
+    public boolean isOverDataLimit() throws IOException {
         Logger.i("Checking data limit...");
 
         if (getDataLimit() == UNLIMITED_LIMIT) {

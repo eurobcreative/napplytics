@@ -78,7 +78,6 @@ public class DeviceProperty implements Parcelable {
     }
 
     private DeviceProperty(Parcel in) {
-//    ClassLoader loader = Thread.currentThread().getContextClassLoader();
         deviceId = in.readString();
         appVersion = in.readString();
         timestamp = in.readLong();
@@ -149,10 +148,6 @@ public class DeviceProperty implements Parcelable {
 
     public void setRegistrationId(String regid) {//TODO temporarily fix
         this.registrationId = regid;
-    }
-
-    public String getLocation() {
-        return this.location.toString();
     }
 }
 

@@ -10,12 +10,12 @@ import android.util.Log;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import static com.eurobcreative.monroe.UtilsMonroe.MONROE_ACTION;
-import static com.eurobcreative.monroe.UtilsMonroe.RSSI_RESULT;
+import static com.eurobcreative.monroe.activities.MainActivity.NAPPLYTICS_ACTION;
+import static com.eurobcreative.monroe.activities.MainActivity.RSSI_RESULT;
 
 public class CustomPhoneStateListener extends PhoneStateListener {
     Context mContext;
-    public static String LOG_TAG = "MONROE_RSSI";
+    public static String LOG_TAG = "NApplytics";
 
     public CustomPhoneStateListener(Context context) {
         mContext = context;
@@ -45,7 +45,7 @@ public class CustomPhoneStateListener extends PhoneStateListener {
             Log.i(LOG_TAG, "onSignalStrengthsChanged: getEvdoSnr " + signalStrength.getEvdoSnr());
         }*/
 
-        Intent intent = new Intent(MONROE_ACTION);
+        Intent intent = new Intent(NAPPLYTICS_ACTION);
         intent.putExtra(RSSI_RESULT, signalStrength.getEvdoDbm());
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
 

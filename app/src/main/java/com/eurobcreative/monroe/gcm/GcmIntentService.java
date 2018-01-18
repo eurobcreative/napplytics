@@ -3,7 +3,6 @@ package com.eurobcreative.monroe.gcm;
 import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
 
 import com.eurobcreative.monroe.UpdateIntent;
 import com.eurobcreative.monroe.util.Logger;
@@ -16,8 +15,6 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
  * {@code completeWakefulIntent()} to release the wake lock.
  */
 public class GcmIntentService extends IntentService {
-    public static final int NOTIFICATION_ID = 1;
-    NotificationCompat.Builder builder;
 
     public GcmIntentService() {
         super("GcmIntentService");
@@ -27,8 +24,7 @@ public class GcmIntentService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         Bundle extras = intent.getExtras();
         GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
-        // The getMessageType() intent parameter must be the intent you received
-        // in your BroadcastReceiver.
+        // The getMessageType() intent parameter must be the intent you received in your BroadcastReceiver.
         String messageType = gcm.getMessageType(intent);
 
         if (!extras.isEmpty()) { // has effect of unparcelling Bundle
@@ -57,25 +53,4 @@ public class GcmIntentService extends IntentService {
         // Release the wake lock provided by the WakefulBroadcastReceiver.
         GcmBroadcastReceiver.completeWakefulIntent(intent);
     }
-
-    // Put the message into a notification and post it.
-    // This is just one simple example of what you might choose to do with a GCM message.
-    // private void sendNotification(String msg) {
-    // mNotificationManager = (NotificationManager)
-    // this.getSystemService(Context.NOTIFICATION_SERVICE);
-    //
-    // PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-    // new Intent(this, MainActivity.class), 0);
-    //
-    // NotificationCompat.Builder mBuilder =
-    // new NotificationCompat.Builder(this)
-    // .setSmallIcon(R.drawable.ic_stat_gcm)
-    // .setContentTitle("GCM Notification")
-    // .setStyle(new NotificationCompat.BigTextStyle()
-    // .bigText(msg))
-    // .setContentText(msg);
-    //
-    // mBuilder.setContentIntent(contentIntent);
-    // mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
-    // }
 }

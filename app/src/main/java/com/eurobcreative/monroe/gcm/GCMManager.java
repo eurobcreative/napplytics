@@ -13,23 +13,17 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class GCMManager {
-
-    public static final String EXTRA_MESSAGE = "message";
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
     /**
-     * Substitute you own sender ID here. This is the project number you got
-     * from the API Console"
+     * Substitute you own sender ID here. This is the project number you got from the API Console"
      */
     String SENDER_ID = "120699632611";
 
     GoogleCloudMessaging gcm;
-    AtomicInteger msgId = new AtomicInteger();
     Context context;
 
     String regid;
@@ -59,12 +53,6 @@ public class GCMManager {
     public boolean checkPlayServices() {
         int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context);
         if (resultCode != ConnectionResult.SUCCESS) {
-//            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-//                GooglePlayServicesUtil.getErrorDialog(resultCode, context,
-//                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
-//            } else {
-//                Logger.e("GCMManager: This device is not supported.");
-//            }
             Logger.e("GCMManager: This device is not supported");
             return false;
         }

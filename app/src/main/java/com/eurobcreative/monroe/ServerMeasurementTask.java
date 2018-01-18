@@ -59,10 +59,6 @@ public class ServerMeasurementTask implements Callable<MeasurementResult[]> {
 			intent.putExtra(UpdateIntent.TASKID_PAYLOAD, realTask.getTaskId());
 			intent.putExtra(UpdateIntent.CLIENTKEY_PAYLOAD, realTask.getKey());
 			intent.putExtra(UpdateIntent.TASK_TYPE_PAYLOAD, realTask.getType());
-			
-//			if (realTask.getType().equals(SequentialTask.TYPE) || realTask.getType().equals(ParallelTask.TYPE)){
-//				intent.putExtra(UpdateIntent.TASK_DESC_PAYLOAD, realTask.getDescription());
-//			}
 
 			if (results != null) {
 				// Only single task can be paused
@@ -87,13 +83,6 @@ public class ServerMeasurementTask implements Callable<MeasurementResult[]> {
 		try {
 			phoneUtils.acquireWakeLock();
 
-			// if(!(phoneUtils.isCharging() ||
-			// phoneUtils.getCurrentBatteryLevel() >
-			// rManager.getBatteryThresh())){
-			// throw new
-			// MeasurementSkippedException("Not enough battery power");
-			// }
-
 			if (!rManager.canScheduleExperiment()) {
 				throw new MeasurementSkippedException(
 						"Not enough battery power");
@@ -101,7 +90,7 @@ public class ServerMeasurementTask implements Callable<MeasurementResult[]> {
 
 			if (PhoneUtils.getPhoneUtils().getNetwork() != PhoneUtils.NETWORK_WIFI) {
 				try {
-					if (rManager.isOverDataLimit(realTask.getMeasurementType())) {
+					if (rManager.isOverDataLimit()) {
 						Logger.i("Skipping measurement - data limit is passed");
 						throw new MeasurementSkippedException("Over data limit");
 					}
@@ -129,11 +118,7 @@ public class ServerMeasurementTask implements Callable<MeasurementResult[]> {
 				if (PhoneUtils.getPhoneUtils().getNetwork() != PhoneUtils.NETWORK_WIFI) {
 					rManager.updateDataUsage(realTask.getDataConsumed());
 				}
-				
-//				if (realTask.getDescription().priority == MeasurementTask.GCM_PRIORITY) {
-//					this.scheduler.checkin.uploadGCMMeasurementResult(
-//							results[0], rManager);
-//				}
+
 				broadcastMeasurementEnd(results, null);
 			} catch (MeasurementError e) {
 				String error = "Server measurement " + realTask.getDescriptor() + " has failed: " + e.getMessage() + "\n";

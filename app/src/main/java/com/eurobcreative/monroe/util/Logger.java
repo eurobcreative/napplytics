@@ -9,7 +9,7 @@ import com.eurobcreative.monroe.Config;
  */
 public class Logger {
     private final static boolean LOGGING_ENABLED = true;
-    private final static String TAG = "Mobilyzer-" + Config.version;
+    private final static String TAG = "Napplytics-" + Config.version;
 
     public static void d(String msg) {
         if (LOGGING_ENABLED) {
@@ -47,27 +47,9 @@ public class Logger {
         }
     }
 
-    public static void v(String msg) {
-        if (LOGGING_ENABLED) {
-            Log.v(TAG, msg);
-        }
-    }
-
-    public static void v(String msg, Throwable t) {
-        if (LOGGING_ENABLED) {
-            Log.v(TAG, msg, t);
-        }
-    }
-
     public static void w(String msg) {
         if (LOGGING_ENABLED) {
             Log.w(TAG, msg);
-        }
-    }
-
-    public static void w(String msg, Throwable t) {
-        if (LOGGING_ENABLED) {
-            Log.w(TAG, msg, t);
         }
     }
 }

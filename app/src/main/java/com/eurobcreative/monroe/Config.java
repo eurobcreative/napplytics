@@ -18,8 +18,6 @@ public interface Config {
     int MAX_TASK_QUEUE_SIZE = 100;
 
     String USER_AGENT = "Mobilyzer-" + version + " (Linux; Android)";
-    String PING_EXECUTABLE = "ping";
-    String PING6_EXECUTABLE = "ping6";
 
     String SERVER_TASK_CLIENT_KEY = "LibraryServerTask";
     String CHECKIN_KEY = "MobilyzerCheckin";
@@ -36,7 +34,6 @@ public interface Config {
      * Types for message between API and scheduler
      **/
     int MSG_SUBMIT_TASK = 1;
-    int MSG_RESULT = 2;
     int MSG_CANCEL_TASK = 3;
     int MSG_SET_BATTERY_THRESHOLD = 4;
     int MSG_GET_BATTERY_THRESHOLD = 5;
@@ -73,19 +70,7 @@ public interface Config {
     int DEFAULT_CONTEXT_INTERVAL_SEC = 5;
     int MAX_CONTEXT_INFO_COLLECTIONS_PER_TASK = 120;
 
-    int DEFAULT_DNS_COUNT_PER_MEASUREMENT = 1;
-    int PING_COUNT_PER_MEASUREMENT = 10;
-    float PING_FILTER_THRES = (float) 1.4;
-    double DEFAULT_INTERVAL_BETWEEN_ICMP_PACKET_SEC = 0.5;
-
-    int TRACEROUTE_TASK_DURATION = 4 * 30 * 500;
-    int DEFAULT_DNS_TASK_DURATION = 0;
     int DEFAULT_HTTP_TASK_DURATION = 0;
-    int DEFAULT_PING_TASK_DURATION = PING_COUNT_PER_MEASUREMENT * 500;
-    int DEFAULT_UDPBURST_DURATION = 30 * 1000;
-    int DEFAULT_PARALLEL_TASK_DURATION = 60 * 1000;
-    int DEFAULT_TASK_DURATION_TIMEOUT = 60 * 1000;
-    int DEFAULT_RRC_TASK_DURATION = 30 * 60 * 1000;
     int MAX_TASK_DURATION = 15 * 60 * 1000;//TODO
 
     // Keys in SharedPrefernce
@@ -108,14 +93,4 @@ public interface Config {
     long PAUSE_BETWEEN_CHECKIN_CHANGE_MSEC = 1 * 60 * 1000L;
 
     int DEFAULT_DATA_MONITOR_PERIOD_DAY = 1;
-
-    // Reschedule delay for RRC task
-    long RESCHEDULE_DELAY = 20 * 60 * 1000;
-
-
-    int INVALID_PROGRESS = -1;
-    int MAX_PROGRESS_BAR_VALUE = 100;
-    // A progress greater than MAX_PROGRESS_BAR_VALUE indicates the end of the measurement
-    int MEASUREMENT_END_PROGRESS = MAX_PROGRESS_BAR_VALUE + 1;
-    int DEFAULT_USER_MEASUREMENT_COUNT = 1;
 }

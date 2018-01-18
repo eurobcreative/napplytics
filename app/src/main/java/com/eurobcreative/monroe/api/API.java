@@ -15,25 +15,13 @@ import com.eurobcreative.monroe.MeasurementScheduler;
 import com.eurobcreative.monroe.MeasurementTask;
 import com.eurobcreative.monroe.UpdateIntent;
 import com.eurobcreative.monroe.exceptions.MeasurementError;
-import com.eurobcreative.monroe.measurements.DnsLookupTask;
 import com.eurobcreative.monroe.measurements.HttpTask;
-import com.eurobcreative.monroe.measurements.PageLoadTimeTask;
-import com.eurobcreative.monroe.measurements.ParallelTask;
-import com.eurobcreative.monroe.measurements.PingTask;
-import com.eurobcreative.monroe.measurements.SequentialTask;
-import com.eurobcreative.monroe.measurements.TCPThroughputTask;
-import com.eurobcreative.monroe.measurements.TracerouteTask;
-import com.eurobcreative.monroe.measurements.UDPBurstTask;
-import com.eurobcreative.monroe.measurements.VideoQoETask;
 import com.eurobcreative.monroe.util.Logger;
 
-import java.security.InvalidParameterException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 
 /**
  * @author jackjia, Hongyi Yao (hyyao@umich.edu)
@@ -44,8 +32,7 @@ import java.util.Set;
  */
 public final class API {
     public enum TaskType {
-        DNSLOOKUP, HTTP, PING, TRACEROUTE, TCPTHROUGHPUT, UDPBURST,
-        PARALLEL, SEQUENTIAL, INVALID, PLT, VIDEOQOE
+        HTTP, VIDEOQOE
     }
 
     /**
@@ -55,7 +42,6 @@ public final class API {
      * can get the result
      */
     public String userResultAction;
-    public static final String SERVER_RESULT_ACTION = UpdateIntent.SERVER_RESULT_ACTION;
     public String batteryThresholdAction;
     public String checkinIntervalAction;
     public String taskStatusAction;
@@ -175,8 +161,6 @@ public final class API {
         Logger.e("API-> startAndBindService() called " + isBindingToService + " " + isBound);
         if (!isBindingToService && !isBound) {
             Logger.e("API-> bind() called 2");
-            // Bind to the scheduler service if it is not bounded
-            //Intent intent = new Intent("com.mobilyzer.MeasurementScheduler");
             Intent intent = new Intent(applicationContext, MeasurementScheduler.class);
             intent.putExtra(UpdateIntent.CLIENTKEY_PAYLOAD, clientKey);
             intent.putExtra(UpdateIntent.VERSION_PAYLOAD, Config.version);
@@ -242,50 +226,8 @@ public final class API {
      * @throws MeasurementError taskType is not valid
      */
     public MeasurementTask createTask(TaskType taskType, Date startTime, Date endTime, double intervalSec,
-                                      long count, long priority, int contextIntervalSec, Map<String, String> params) throws MeasurementError {
-        MeasurementTask task;
-        switch (taskType) {
-            case DNSLOOKUP:
-                task = new DnsLookupTask(new DnsLookupTask.DnsLookupDesc(clientKey, startTime, endTime,
-                        intervalSec, count, priority, contextIntervalSec, params));
-                break;
-            /*case HTTP:
-                task = new HttpTask(new HttpTask.HttpDesc(clientKey, startTime, endTime,
-                        intervalSec, count, priority, contextIntervalSec, params));
-                break;*/
-            case PING:
-                task = new PingTask(new PingTask.PingDesc(clientKey, startTime, endTime,
-                        intervalSec, count, priority, contextIntervalSec, params));
-                break;
-            case TRACEROUTE:
-                task = new TracerouteTask(new TracerouteTask.TracerouteDesc(clientKey, startTime, endTime,
-                        intervalSec, count, priority, contextIntervalSec, params));
-                break;
-            case TCPTHROUGHPUT:
-                task = new TCPThroughputTask(new TCPThroughputTask.TCPThroughputDesc(clientKey, startTime,
-                        endTime, intervalSec, count, priority, contextIntervalSec, params));
-                break;
-            case UDPBURST:
-                task = new UDPBurstTask(new UDPBurstTask.UDPBurstDesc(clientKey, startTime, endTime,
-                        intervalSec, count, priority, contextIntervalSec, params));
-                break;
-            case PLT:
-                task = new PageLoadTimeTask(new PageLoadTimeTask.PageLoadTimeDesc(clientKey, startTime, endTime,
-                        intervalSec, count, priority, contextIntervalSec, params));
-                break;
-            case VIDEOQOE:
-                task = new VideoQoETask(new VideoQoETask.VideoQoEDesc(clientKey, startTime, endTime,
-                        intervalSec, count, priority, contextIntervalSec, params));
-                break;
-            default:
-                throw new MeasurementError("Undefined measurement type. Candidate: DNSLOOKUP, HTTP, PING, TRACEROUTE, TCPTHROUGHPUT, UDPBURST");
-        }
-        return task;
-    }
-    //TODO: TESTING
-    //////////////////
-    public MeasurementTask createTask(TaskType taskType, Date startTime, Date endTime, double intervalSec,
-                                      long count, long priority, int contextIntervalSec, Map<String, String> params, Context context) throws MeasurementError {
+                                      long count, long priority, int contextIntervalSec, Map<String, String> params,
+                                      Context context) throws MeasurementError {
         MeasurementTask task;
         switch (taskType) {
             case HTTP:
@@ -295,54 +237,6 @@ public final class API {
 
             default:
                 throw new MeasurementError("Undefined measurement type. Candidate: DNSLOOKUP, HTTP, PING, TRACEROUTE, TCPTHROUGHPUT, UDPBURST");
-        }
-        return task;
-    }
-    ////////////////
-
-    /**
-     * Create a parallel or sequential task based on the manner. An ArrayList of
-     * MeasurementTask must be provided as the real tasks to be executed
-     *
-     * @param manner             Determine whether tasks in task list will be executed
-     *                           parallelly or sequentially (back-to-back)
-     * @param startTime          Earliest time that measurements can be taken using this
-     *                           Task descriptor. The current time will be used in place of a null
-     *                           startTime parameter. Measurements with a startTime more than 24
-     *                           hours from now will NOT be run.
-     * @param endTime            Latest time that measurements can be taken using this Task
-     *                           descriptor. Tasks with an endTime before startTime will be canceled.
-     *                           Corresponding to the 24-hour rule in startTime, tasks with endTime
-     *                           later than 24 hours from now will be assigned a new endTime that
-     *                           ends 24 hours from now.
-     * @param intervalSec        Minimum number of seconds to elapse between consecutive
-     *                           measurements taken with this description.
-     * @param count              Maximum number of times that a measurement should be taken
-     *                           with this description. A count of 0 means to continue the
-     *                           measurement indefinitely (until end_time).
-     * @param priority           Two level of priority: USER_PRIORITY for user task and
-     *                           INVALID_PRIORITY for server task
-     * @param contextIntervalSec interval between the context collection (in sec)
-     * @param params             Measurement parameters.
-     * @param taskList           tasks to be executed
-     * @return The parallel or sequential task filled with those parameters
-     * @throws MeasurementError manner is not valid
-     */
-    public MeasurementTask composeTasks(TaskType manner, Date startTime, Date endTime, double intervalSec, long count, long priority,
-                                        int contextIntervalSec, Map<String, String> params, ArrayList<MeasurementTask> taskList) throws MeasurementError {
-        MeasurementTask task;
-        switch (manner) {
-            case PARALLEL:
-                task = new ParallelTask(new ParallelTask.ParallelDesc(clientKey, startTime, endTime
-                        , intervalSec, count, priority, contextIntervalSec, params), taskList);
-                break;
-            case SEQUENTIAL:
-                task = new SequentialTask(new SequentialTask.SequentialDesc(clientKey, startTime, endTime
-                        , intervalSec, count, priority, contextIntervalSec, params), taskList);
-                break;
-            default:
-                throw new MeasurementError("Undefined measurement composing type. " +
-                        " Candidate: PARALLEL, SEQUENTIAL");
         }
         return task;
     }
@@ -402,191 +296,17 @@ public final class API {
     public void submitTask(MeasurementTask task) throws MeasurementError {
         Logger.d("API->submitTask called");
         if (task != null) {
-            // Hongyi: for delay measurement
-            //task.getDescription().parameters.put("ts_api_send", String.valueOf(System.currentTimeMillis()));
-
             Logger.i("API: Adding new " + task.getType() + " task " + task.getTaskId());
             Message msg = Message.obtain(null, Config.MSG_SUBMIT_TASK);
             Bundle data = new Bundle();
             data.putParcelable(UpdateIntent.MEASUREMENT_TASK_PAYLOAD, task);
             msg.setData(data);
             sendMessage(msg);
+
         } else {
             String err = "submitTask: task is null";
             Logger.e(err);
             throw new MeasurementError(err);
         }
-    }
-
-    /**
-     * Cancel the task submitted to the scheduler
-     *
-     * @param taskId task to be cancelled. Got by MeasurementTask.getTaskId()
-     * @return true for succeed, false for fail
-     * @throws InvalidParameterException
-     */
-    public void cancelTask(String taskId) throws MeasurementError {
-        Logger.d("API->cancelTask called");
-        if (taskId != null) {
-            Message msg = Message.obtain(null, Config.MSG_CANCEL_TASK);
-            Bundle data = new Bundle();
-            Logger.i("API: try to cancel task " + taskId);
-            data.putString(UpdateIntent.TASKID_PAYLOAD, taskId);
-            msg.setData(data);
-            sendMessage(msg);
-        } else {
-            String err = "cancelTask: taskId is null";
-            Logger.e(err);
-            throw new MeasurementError(err);
-        }
-    }
-
-    /**
-     * Set authenticate account for uploading results. Anonymous by default
-     *
-     * @param account
-     * @throws MeasurementError
-     */
-    public void setAuthenticateAccount(String account) throws MeasurementError {
-        Logger.d("API->setAuthenticateAccount called");
-        Message msg = Message.obtain(null, Config.MSG_SET_AUTH_ACCOUNT);
-        Bundle data = new Bundle();
-        data.putString(UpdateIntent.AUTH_ACCOUNT_PAYLOAD, account);
-        msg.setData(data);
-        sendMessage(msg);
-    }
-
-    /**
-     * Get current authenticate account used by scheduler
-     *
-     * @throws MeasurementError
-     */
-    public void getAuthenticateAccount() throws MeasurementError {
-        Logger.d("API->getAuthenticateAccount called");
-        Message msg = Message.obtain(null, Config.MSG_GET_AUTH_ACCOUNT);
-        sendMessage(msg);
-    }
-
-    /**
-     * Set battery threshold of the scheduler. Only a threshold larger than the current one will be accepted.
-     *
-     * @param threshold new battery threshold, must stay between 0 and 100
-     * @throws MeasurementError
-     */
-    public void setBatteryThreshold(int threshold) throws MeasurementError {
-        Logger.d("API->setBatteryThreshold called");
-        if (threshold > 100 || threshold <= 0) {
-            String err = "Battery threshold should stay between 0 and 100";
-            Logger.e(err);
-            throw new MeasurementError(err);
-        }
-        Message msg = Message.obtain(null, Config.MSG_SET_BATTERY_THRESHOLD);
-        Bundle data = new Bundle();
-        data.putInt(UpdateIntent.BATTERY_THRESHOLD_PAYLOAD, threshold);
-        msg.setData(data);
-        sendMessage(msg);
-    }
-
-    /**
-     * Get current battery threshold of the scheduler. Async call. Receive api.batteryThresholdAction to get the result
-     *
-     * @throws MeasurementError
-     */
-    public void getBatteryThreshold() throws MeasurementError {
-        Logger.d("API->getBatteryThreshold called");
-        Message msg = Message.obtain(null, Config.MSG_GET_BATTERY_THRESHOLD);
-        sendMessage(msg);
-    }
-
-    /**
-     * Set checkin interval of the scheduler. Only an interval larger than the current one will be accepted.
-     *
-     * @param interval new checkin interval, should be greater than min interval
-     * @throws MeasurementError
-     */
-    public void setCheckinInterval(long interval) throws MeasurementError {
-        Logger.d("API->setCheckinInterval called");
-        if (interval < Config.MIN_CHECKIN_INTERVAL_SEC) {
-            String err = "Checkin interval should be greater than " + Config.MIN_CHECKIN_INTERVAL_SEC;
-            Logger.e(err);
-            throw new MeasurementError(err);
-        }
-        Message msg = Message.obtain(null, Config.MSG_SET_CHECKIN_INTERVAL);
-        Bundle data = new Bundle();
-        data.putLong(UpdateIntent.CHECKIN_INTERVAL_PAYLOAD, interval);
-        msg.setData(data);
-        sendMessage(msg);
-    }
-
-    /**
-     * Get current checkin interval of the scheduler. Async call. Receive api.checkinIntervalAction to get the result
-     *
-     * @throws MeasurementError
-     */
-    public void getCheckinInterval() throws MeasurementError {
-        Logger.d("API->getCheckinInterval called");
-        Message msg = Message.obtain(null, Config.MSG_GET_CHECKIN_INTERVAL);
-        sendMessage(msg);
-    }
-
-    /**
-     * Get current status of that task. Async call. Receive api.taskStatusAction to get the result
-     *
-     * @param taskId the id of the target task
-     * @throws MeasurementError
-     */
-    public void getTaskStatus(String taskId) throws MeasurementError {
-        Message msg = Message.obtain(null, Config.MSG_GET_TASK_STATUS);
-        Bundle data = new Bundle();
-        data.putString(UpdateIntent.TASKID_PAYLOAD, taskId);
-        msg.setData(data);
-        Logger.d("Attempt getting task status");
-        sendMessage(msg);
-    }
-
-    /**
-     * Set data usage profile of the scheduler. Only an profile more conventional than the current one will be accepted.
-     *
-     * @param profile new data usage profile
-     * @throws MeasurementError
-     */
-    public void setDataUsage(MeasurementScheduler.DataUsageProfile profile) throws MeasurementError {
-        if (profile == MeasurementScheduler.DataUsageProfile.NOTASSIGNED) {
-            String err = "Data usage profile should be valid";
-            Logger.e(err);
-            throw new MeasurementError(err);
-        }
-        Message msg = Message.obtain(null, Config.MSG_SET_DATA_USAGE);
-        Bundle data = new Bundle();
-        data.putSerializable(UpdateIntent.DATA_USAGE_PAYLOAD, profile);
-        msg.setData(data);
-        Logger.d("Attempt setting data usage to " + profile);
-        sendMessage(msg);
-    }
-
-    /**
-     * Get current data usage of the scheduler. Async call. Receive api.dataUsageAction to get the result
-     *
-     * @throws MeasurementError
-     */
-    public void getDataUsage() throws MeasurementError {
-        Message msg = Message.obtain(null, Config.MSG_GET_DATA_USAGE);
-        Logger.d("Attempt getting data usage");
-        sendMessage(msg);
-    }
-
-    /**
-     * Gets the currently available measurement descriptions
-     */
-    public static Set<String> getMeasurementNames() {
-        return MeasurementTask.getMeasurementNames();
-    }
-
-    /**
-     * Get the type of a measurement based on its name. Type is for JSON interface only
-     * where as measurement name is a readable string for the UI
-     */
-    public static String getTypeForMeasurementName(String name) {
-        return MeasurementTask.getTypeForMeasurementName(name);
     }
 }

@@ -8,8 +8,4 @@ public class MeasurementSkippedException extends MeasurementError {
     public MeasurementSkippedException(String reason) {
         super(reason);
     }
-
-    public MeasurementSkippedException(String reason, Throwable e) {
-        super(reason, e);
-    }
 }

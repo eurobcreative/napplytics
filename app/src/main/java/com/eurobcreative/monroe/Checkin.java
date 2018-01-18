@@ -3,14 +3,12 @@ package com.eurobcreative.monroe;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.content.Context;
-import android.os.AsyncTask;
 
 import com.eurobcreative.monroe.gcm.GCMManager;
 import com.eurobcreative.monroe.util.Logger;
 import com.eurobcreative.monroe.util.MeasurementJsonConvertor;
 import com.eurobcreative.monroe.util.PhoneUtils;
 
-import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,32 +25,17 @@ import java.io.OutputStreamWriter;
 import java.net.CookieManager;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
-import java.net.Socket;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
 /**
  * Handles checkins with the server.
  */
 public class Checkin {
-    private static final int POST_TIMEOUT_MILLISEC = 20 * 1000;
     private Context context;
-    private Date lastCheckin;
     private volatile HttpCookie authCookie = null;
     private AccountSelector accountSelector = null;
     PhoneUtils phoneUtils;
@@ -81,10 +64,6 @@ public class Checkin {
         cookie.getCookieStore().add(null, new HttpCookie("dev_appserver_login", "test@nobody.com:False:185804764220139124118"));
         cookie.getCookieStore().add(null, new HttpCookie(".google.com", "/"));
         return cookie.getCookieStore().getCookies().get(0);
-    }
-
-    public Date lastCheckinTime() {
-        return this.lastCheckin;
     }
 
     public List<MeasurementTask> checkin(ResourceCapManager resourceCapManager, GCMManager gcm) throws IOException {
@@ -147,8 +126,6 @@ public class Checkin {
                     }
                 }
             }
-
-            this.lastCheckin = new Date();
             Logger.i("Checkin complete, got " + schedule.size() + " new tasks");
             checkinSuccess = true;
             return schedule;
@@ -256,90 +233,6 @@ public class Checkin {
             }
         } catch (JSONException e) {
             throw new IOException(e.getMessage());
-        }
-    }
-
-    class NotUIBlockingResultUploader extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... results) {
-            if (results.length != 1) {
-                return "";
-            }
-            String r = results[0];
-            String response = "";
-            try {
-                response = serviceRequest("postmeasurement", r);
-            } catch (IOException e) {
-                Logger.e("Failed to upload local event: " + e.getMessage());
-            }
-            return response;
-        }
-    }
-
-
-    public void uploadSingleMeasurementResult(MeasurementResult result, ResourceCapManager resourceCapManager) throws IOException, InterruptedException, ExecutionException {
-
-        result.getDeviceProperty().registrationId = gcm_registraion_id;
-        try {
-            JSONArray resultArray = new JSONArray();
-            resultArray.put(MeasurementJsonConvertor.encodeToJson(result));
-            Logger.d("Single Measurement result converted to json: " + resultArray.toString());
-            if (PhoneUtils.getPhoneUtils().getNetwork() != PhoneUtils.NETWORK_WIFI) {
-                resourceCapManager.updateDataUsage(resultArray.toString().length());
-            }
-
-            String response = new NotUIBlockingResultUploader().execute(resultArray.toString()).get();
-//      String response = serviceRequest("postmeasurement", resultJson.toString());
-            try {
-                JSONObject responseJson = new JSONObject(response);
-                if (!responseJson.getBoolean("success")) {
-                    throw new IOException("Failure posting single measurement result");
-                }
-            } catch (JSONException e) {
-                throw new IOException(e.getMessage());
-            }
-        } catch (JSONException e1) {
-            Logger.d("TaskSchedule.uploadSingleMeasurementResult() complete");
-        }
-        Logger.d("TaskSchedule.uploadSingleMeasurementResult() complete");
-    }
-
-    /**
-     * Used to generate SSL sockets.
-     */
-    class MySSLSocketFactory extends SSLSocketFactory {
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-
-        public MySSLSocketFactory(KeyStore truststore) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-            super(truststore);
-
-            X509TrustManager tm = new X509TrustManager() {
-                public X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-
-                @Override
-                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                    // Do nothing
-                }
-
-                @Override
-                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                    // Do nothing
-                }
-            };
-
-            sslContext.init(null, new TrustManager[]{tm}, null);
-        }
-
-        @Override
-        public Socket createSocket(Socket socket, String host, int port, boolean autoClose) throws IOException {
-            return sslContext.getSocketFactory().createSocket(socket, host, port, autoClose);
-        }
-
-        @Override
-        public Socket createSocket() throws IOException {
-            return sslContext.getSocketFactory().createSocket();
         }
     }
 

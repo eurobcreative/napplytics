@@ -18,11 +18,8 @@ import com.eurobcreative.monroe.util.MeasurementJsonConvertor;
 import com.eurobcreative.monroe.util.PhoneUtils;
 import com.eurobcreative.monroe.util.Util;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InvalidClassException;
-import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -31,26 +28,17 @@ import java.security.InvalidParameterException;
 import java.util.Date;
 import java.util.Map;
 
-import static com.eurobcreative.monroe.UtilsMonroe.MONROE_ACTION;
-import static com.eurobcreative.monroe.UtilsMonroe.SPEED_RESULT;
+import static com.eurobcreative.monroe.activities.MainActivity.NAPPLYTICS_ACTION;
+import static com.eurobcreative.monroe.activities.MainActivity.THROUGHPUT_RESULT;
 
 /**
  * A Callable class that performs download throughput test using HTTP get
  */
 public class HttpTask extends MeasurementTask {
-
-    //TODO: TESTING
-    /////////
     Context context;
-    /////////
-
-
-
 
     // Type name for internal use
     public static final String TYPE = "http";
-    // Human readable name for the task
-    public static final String DESCRIPTOR = "HTTP";
     /* TODO(Wenjie): Depending on state machine configuration of cell tower's radio,
      * the size to find the 'real' bandwidth of the phone may be network dependent.
      */
@@ -62,8 +50,7 @@ public class HttpTask extends MeasurementTask {
     public static final int MAX_BODY_SIZE_TO_UPLOAD = 1024;
     // The buffer size we use to read from the HTTP response stream
     public static final int READ_BUFFER_SIZE = 1024;
-    // Not used by the HTTP protocol. Just in case we do not receive a status line
-    // from the response
+    // Not used by the HTTP protocol. Just in case we do not receive a status line from the response
     public static final int DEFAULT_STATUS_CODE = 0;
 
     //Track data consumption for this task to avoid exceeding user's limit
@@ -108,7 +95,6 @@ public class HttpTask extends MeasurementTask {
      */
     public static class HttpDesc extends MeasurementDesc {
         public String url;
-        private String method;
         private String headers;
         private String body;
 
@@ -132,10 +118,6 @@ public class HttpTask extends MeasurementTask {
                 this.url = "http://" + this.url;
             }
 
-            this.method = params.get("method");
-            if (this.method == null || this.method.isEmpty()) {
-                this.method = "get";
-            }
             this.headers = params.get("headers");
             this.body = params.get("body");
         }
@@ -149,7 +131,6 @@ public class HttpTask extends MeasurementTask {
         protected HttpDesc(Parcel in) {
             super(in);
             url = in.readString();
-            method = in.readString();
             headers = in.readString();
             body = in.readString();
         }
@@ -168,7 +149,6 @@ public class HttpTask extends MeasurementTask {
         public void writeToParcel(Parcel dest, int flags) {
             super.writeToParcel(dest, flags);
             dest.writeString(url);
-            dest.writeString(method);
             dest.writeString(headers);
             dest.writeString(body);
         }
@@ -195,10 +175,8 @@ public class HttpTask extends MeasurementTask {
         int statusCode = HttpTask.DEFAULT_STATUS_CODE;
         long duration = 0;
         long originalHeadersLen = 0;
-        long originalBodyLen;
         String headers;
         ByteBuffer body = ByteBuffer.allocate(HttpTask.MAX_BODY_SIZE_TO_UPLOAD);
-        //    boolean success = false;
         TaskProgress taskProgress = TaskProgress.FAILED;
         String errorMsg = "";
         InputStream inputStream = null;
@@ -206,39 +184,19 @@ public class HttpTask extends MeasurementTask {
         long currentRxTx = Util.getCurrentRxTxBytes();
 
         try {
-            // set the download URL, a URL that points to a file on the Internet
-            // this is the file to be downloaded
+            // set the download URL, a URL that points to a file on the Internet this is the file to be downloaded
             HttpDesc task = (HttpDesc) this.measurementDesc;
             String urlStr = task.url;
 
             URL urlObj = new URL(urlStr);
-            HttpURLConnection urlConnection = (HttpURLConnection) urlObj.openConnection();
-
-            // TODO(Wenjie): Need to set timeout for the HTTP methods
-            if (task.method.compareToIgnoreCase("head") == 0) {
-                urlConnection.setRequestMethod("HEAD");
-
-            } else if (task.method.compareToIgnoreCase("get") == 0) {
-                urlConnection.setRequestMethod("GET");
-
-            } else if (task.method.compareToIgnoreCase("post") == 0) {
-                urlConnection.setRequestMethod("POST");
-                urlConnection.setDoOutput(true);
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(urlConnection.getOutputStream()));
-                writer.write(task.body);
-                writer.flush();
-                writer.close();
-
-            } else {
-                // Use GET by default
-                urlConnection.setRequestMethod("GET");
-            }
+            HttpURLConnection httpURLConnection = (HttpURLConnection) urlObj.openConnection();
+            httpURLConnection.setRequestMethod("GET");
 
             if (task.headers != null && task.headers.trim().length() > 0) {
                 for (String headerLine : task.headers.split("\r\n")) {
                     String tokens[] = headerLine.split(":");
                     if (tokens.length == 2) {
-                        urlConnection.setRequestProperty(tokens[0], tokens[1]);
+                        httpURLConnection.setRequestProperty(tokens[0], tokens[1]);
                     } else {
                         throw new MeasurementError("Incorrect header line: " + headerLine);
                     }
@@ -259,8 +217,8 @@ public class HttpTask extends MeasurementTask {
             *
             * We may want to fetch instead from the redirected page.
             */
-            if (urlConnection != null) {
-                statusCode = urlConnection.getResponseCode();
+            if (httpURLConnection != null) {
+                statusCode = httpURLConnection.getResponseCode();
                 if (statusCode == 200) {
                     taskProgress = TaskProgress.COMPLETED;
                 } else {
@@ -268,19 +226,9 @@ public class HttpTask extends MeasurementTask {
                 }
             }
 
-            /* For HttpClient to work properly, we still want to consume the entire
-            * response even if the status code is not 200
-            */
-            originalBodyLen = urlConnection.getContentLength();
-            long expectedResponseLen = HttpTask.MAX_HTTP_RESPONSE_SIZE;
-            // getContentLength() returns negative number if body length is unknown
-            if (originalBodyLen > 0) {
-                expectedResponseLen = originalBodyLen;
-            }
-
             try {
-                if (urlConnection != null) {
-                    inputStream = urlConnection.getInputStream();
+                if (httpURLConnection != null) {
+                    inputStream = httpURLConnection.getInputStream();
                     while ((readLen = inputStream.read(readBuffer)) > 0 && totalBodyLen <= HttpTask.MAX_HTTP_RESPONSE_SIZE) {
                         totalBodyLen += readLen;
                         // Fill in the body to report up to MAX_BODY_SIZE
@@ -288,21 +236,17 @@ public class HttpTask extends MeasurementTask {
                             int putLen = body.remaining() < readLen ? body.remaining() : readLen;
                             body.put(readBuffer, 0, putLen);
                         }
-                        //AITOR: Used in old code
-                        /*this.progress = (int) (100 * totalBodyLen / expectedResponseLen);
-                        this.progress = Math.min(Config.MAX_PROGRESS_BAR_VALUE, progress);
-                        broadcastProgressForUser(this.progress);*/
                     }
                     duration = System.currentTimeMillis() - startTime;//TODO check this
                 }
             } finally {
-                urlConnection.disconnect();
+                httpURLConnection.disconnect();
             }
 
             headers = "";
             for (int i = 0; ; i++) {
-                String headerName = urlConnection.getHeaderFieldKey(i);
-                String headerValue = urlConnection.getHeaderField(i);
+                String headerName = httpURLConnection.getHeaderFieldKey(i);
+                String headerValue = httpURLConnection.getHeaderField(i);
 
                 if (headerName == null && headerValue == null) {
                     break; //No more headers
@@ -338,22 +282,11 @@ public class HttpTask extends MeasurementTask {
                 result.addResult("body", Base64.encodeToString(body.array(), Base64.DEFAULT));
             }
 
-
-
-
-
-            //TODO: TESTING
-            ////////
             Intent intent = new Intent();
-            long speed = (originalHeadersLen + totalBodyLen) * 8 / duration;
-            intent.putExtra(SPEED_RESULT, speed);
-            intent.setAction(MONROE_ACTION);
+            float throughput = (((float)(originalHeadersLen + totalBodyLen) * 8.0f) / 1000.0f) / ((float) duration / 1000.0f); // throughput -> Kbps
+            intent.putExtra(THROUGHPUT_RESULT, (long) Math.round(throughput));
+            intent.setAction(NAPPLYTICS_ACTION);
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-            ////////
-
-
-
-
 
             Logger.i(MeasurementJsonConvertor.toJsonString(result));
             MeasurementResult[] mrArray = new MeasurementResult[1];
@@ -377,11 +310,6 @@ public class HttpTask extends MeasurementTask {
         throw new MeasurementError("Cannot get result from HTTP measurement because " + errorMsg);
     }
 
-    @SuppressWarnings("rawtypes")
-    public static Class getDescClass() throws InvalidClassException {
-        return HttpDesc.class;
-    }
-
     @Override
     public String getType() {
         return HttpTask.TYPE;
@@ -389,13 +317,13 @@ public class HttpTask extends MeasurementTask {
 
     @Override
     public String getDescriptor() {
-        return DESCRIPTOR;
+        return Util.HTTP_DESCRIPTOR;
     }
 
     @Override
     public String toString() {
         HttpDesc desc = (HttpDesc) measurementDesc;
-        return "[HTTP " + desc.method + "]\n  Target: " + desc.url + "\n  Interval (sec): " + desc.intervalSec + "\n  Next run: " + desc.startTime;
+        return "[HTTP Target: " + desc.url + "\n  Interval (sec): " + desc.intervalSec + "\n  Next run: " + desc.startTime;
     }
 
     @Override

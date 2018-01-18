@@ -98,7 +98,6 @@ public abstract class MeasurementDesc implements Parcelable {
                 && this.intervalSec == another.intervalSec && this.count == another.count
                 && this.priority == another.priority
                 && this.contextIntervalSec == another.contextIntervalSec
-//        && this.parameters.equals(another.parameters)
                 ) {
             for (String key : this.parameters.keySet()) {
                 if (!this.parameters.get(key).equals(another.parameters.get(key))) {
@@ -109,10 +108,6 @@ public abstract class MeasurementDesc implements Parcelable {
             return true;
         }
         return false;
-    }
-
-    public void setParameters(Map<String, String> newParams) {
-        this.parameters = newParams;
     }
 
     public void setType(String type) {
@@ -136,7 +131,6 @@ public abstract class MeasurementDesc implements Parcelable {
      * @param in Parcel object containing measurement descriptor
      */
     protected MeasurementDesc(Parcel in) {
-//    ClassLoader loader = Thread.currentThread().getContextClassLoader();
         type = in.readString();
         key = in.readString();
         startTime = (Date) in.readSerializable();
@@ -145,7 +139,6 @@ public abstract class MeasurementDesc implements Parcelable {
         count = in.readLong();
         priority = in.readLong();
         contextIntervalSec = in.readInt();
-//    parameters = in.readHashMap();
         parameters = new HashMap<>();
         int parametersSize = in.readInt();
 
@@ -169,7 +162,6 @@ public abstract class MeasurementDesc implements Parcelable {
         dest.writeLong(count);
         dest.writeLong(priority);
         dest.writeInt(contextIntervalSec);
-//    dest.writeMap(parameters);
         dest.writeInt(parameters.size());
         for (String s : parameters.keySet()) {
             dest.writeString(s);

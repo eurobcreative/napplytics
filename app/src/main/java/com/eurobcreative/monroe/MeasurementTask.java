@@ -4,18 +4,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.eurobcreative.monroe.exceptions.MeasurementError;
-import com.eurobcreative.monroe.measurements.DnsLookupTask;
 import com.eurobcreative.monroe.measurements.HttpTask;
-import com.eurobcreative.monroe.measurements.PageLoadTimeTask;
-import com.eurobcreative.monroe.measurements.PingTask;
-import com.eurobcreative.monroe.measurements.RRCTask;
-import com.eurobcreative.monroe.measurements.SequentialTask;
-import com.eurobcreative.monroe.measurements.TCPThroughputTask;
-import com.eurobcreative.monroe.measurements.TracerouteTask;
-import com.eurobcreative.monroe.measurements.UDPBurstTask;
-import com.eurobcreative.monroe.measurements.VideoQoETask;
+import com.eurobcreative.monroe.util.Util;
 
-import java.io.InvalidClassException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
@@ -27,7 +18,7 @@ public abstract class MeasurementTask implements Callable<MeasurementResult[]>, 
 
 
     public static final int USER_PRIORITY = Integer.MIN_VALUE;
-    /* used for Server tasks */
+    //Used for Server tasks
     public static final int INVALID_PRIORITY = Integer.MAX_VALUE;
     public static final int GCM_PRIORITY = 1234;//TODO just for testing
     public static final int INFINITE_COUNT = -1;
@@ -39,26 +30,8 @@ public abstract class MeasurementTask implements Callable<MeasurementResult[]>, 
     static {
         measurementTypes = new HashMap<>();
         measurementDescToType = new HashMap<>();
-        measurementTypes.put(PingTask.TYPE, PingTask.class);
-        measurementDescToType.put(PingTask.DESCRIPTOR, PingTask.TYPE);
         measurementTypes.put(HttpTask.TYPE, HttpTask.class);
-        measurementDescToType.put(HttpTask.DESCRIPTOR, HttpTask.TYPE);
-        measurementTypes.put(TracerouteTask.TYPE, TracerouteTask.class);
-        measurementDescToType.put(TracerouteTask.DESCRIPTOR, TracerouteTask.TYPE);
-        measurementTypes.put(DnsLookupTask.TYPE, DnsLookupTask.class);
-        measurementDescToType.put(DnsLookupTask.DESCRIPTOR, DnsLookupTask.TYPE);
-        measurementTypes.put(TCPThroughputTask.TYPE, TCPThroughputTask.class);
-        measurementDescToType.put(TCPThroughputTask.DESCRIPTOR, TCPThroughputTask.TYPE);
-        measurementTypes.put(UDPBurstTask.TYPE, UDPBurstTask.class);
-        measurementDescToType.put(UDPBurstTask.DESCRIPTOR, UDPBurstTask.TYPE);
-        measurementTypes.put(RRCTask.TYPE, RRCTask.class);
-        // Hongyi: RRCTask is not accessible by users. So we don't put RRC descriptor and type into this map
-        //measurementDescToType.put(RRCTask.DESCRIPTOR, RRCTask.TYPE);
-        measurementTypes.put(PageLoadTimeTask.TYPE, PageLoadTimeTask.class);
-        //measurementDescToType.put(PageLoadTimeTask.DESCRIPTOR, PageLoadTimeTask.TYPE);
-        measurementTypes.put(SequentialTask.TYPE, SequentialTask.class);
-        measurementTypes.put(VideoQoETask.TYPE, VideoQoETask.class);
-        measurementDescToType.put(VideoQoETask.DESCRIPTOR, VideoQoETask.TYPE);
+        measurementDescToType.put(Util.HTTP_DESCRIPTOR, HttpTask.TYPE);
     }
 
     /**
@@ -85,15 +58,6 @@ public abstract class MeasurementTask implements Callable<MeasurementResult[]>, 
         return this.measurementDesc.startTime.getTime() - System.currentTimeMillis();
     }
 
-    public boolean isPassedDeadline() {
-        if (this.measurementDesc.endTime == null) {
-            return false;
-        } else {
-            long endTime = this.measurementDesc.endTime.getTime();
-            return endTime <= System.currentTimeMillis();
-        }
-    }
-
     public String getMeasurementType() {
         return this.measurementDesc.type;
     }
@@ -102,19 +66,8 @@ public abstract class MeasurementTask implements Callable<MeasurementResult[]>, 
         return this.measurementDesc.key;
     }
 
-    public void setKey(String key) {
-        this.measurementDesc.key = key;
-    }
-
     public MeasurementDesc getDescription() {
         return this.measurementDesc;
-    }
-
-    /**
-     * Gets the currently available measurement descriptions
-     */
-    public static Set<String> getMeasurementNames() {
-        return measurementDescToType.keySet();
     }
 
     /**
@@ -124,25 +77,8 @@ public abstract class MeasurementTask implements Callable<MeasurementResult[]>, 
         return measurementTypes.keySet();
     }
 
-    /**
-     * Get the type of a measurement based on its name. Type is for JSON interface only where as
-     * measurement name is a readable string for the UI
-     */
-    public static String getTypeForMeasurementName(String name) {
-        return measurementDescToType.get(name);
-    }
-
     public static Class getTaskClassForMeasurement(String type) {
         return measurementTypes.get(type);
-    }
-
-    /*
-     * This is put here for consistency that all MeasurementTask should have a
-     * getDescClassForMeasurement() method. However, the MeasurementDesc is abstract and cannot be
-     * instantiated
-     */
-    public static Class getDescClass() throws InvalidClassException {
-        throw new InvalidClassException("getDescClass() should only be invoked on subclasses of MeasurementTask.");
     }
 
     public String getTaskId() {
@@ -172,7 +108,6 @@ public abstract class MeasurementTask implements Callable<MeasurementResult[]>, 
     public abstract boolean stop();
 
     public abstract long getDuration();
-
     public abstract void setDuration(long newDuration);
 
     @Override
@@ -211,7 +146,6 @@ public abstract class MeasurementTask implements Callable<MeasurementResult[]>, 
     }
 
     protected MeasurementTask(Parcel in) {
-//    ClassLoader loader = Thread.currentThread().getContextClassLoader();
         measurementDesc = in.readParcelable(MeasurementDesc.class.getClassLoader());
         taskId = in.readString();
     }

@@ -7,8 +7,11 @@
     <string name="userMeasurementFailureToast">The scheduler is busy, please run the measurement later</string>
     <string name="userMeasurementSuccessToast">Measurement is running. Results will show up shortly.</string>
 
-    <string name="result">%1$s \n%2$s \n\nSpeed= %3$d kbps \nRSSI= %4$d dBm \nRSRP= %5$d dBm \n\nThe results obtained are:
-        \nHTTP 1.1 = %6$s \nHTTP 1.1 TLS= %7$s \nHTTP 2= %8$s \n\nSo the best option is: %9$s</string>
+    <string name="http_result">%1$s \nAddress: %2$s \n\nThroughput = %3$d kbps \nRSSI = %4$d dBm \nRSRP = %5$d dBm \n\nThe results obtained are:
+        \nHTTP 1.1 = %6$s \nHTTP 1.1 TLS = %7$s \nHTTP 2 = %8$s \n\nSo the best option is: %9$s</string>
+
+    <string name="video_result">%1$s \nAddress: %2$s \n\nNetwork type: %3$s \n\nThroughput = %4$d Mbps \nRSSI = %5$d dBm \nRSRP = %6$d dBm \n\nThe results obtained are:
+        \nHTTP = %7$s \nRTSP = %8$s \n\nThe best option is: %9$s</string>
 
     <string name="action">Action:</string>
     <string name="url">URL:</string>

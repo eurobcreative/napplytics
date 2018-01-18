@@ -11,7 +11,6 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
@@ -34,8 +33,6 @@ import android.telephony.NeighboringCellInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
-import android.view.Display;
-import android.view.WindowManager;
 
 import com.eurobcreative.monroe.Config;
 import com.eurobcreative.monroe.DeviceInfo;
@@ -55,10 +52,8 @@ import java.net.UnknownHostException;
 import java.nio.ByteOrder;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -66,8 +61,6 @@ import java.util.List;
  */
 @SuppressLint("NewApi")
 public class PhoneUtils {
-
-    private static final String ANDROID_STRING = "Android";
     /**
      * Returned by {@link #getNetwork()}.
      */
@@ -139,15 +132,6 @@ public class PhoneUtils {
     private BroadcastReceiver broadcastReceiver;
     private String currentSignalStrength = "UNKNOWN";
 
-    /**
-     * For monitoring the current network connection type
-     **/
-    public static int TYPE_WIFI = 1;
-    public static int TYPE_MOBILE = 2;
-    public static int TYPE_NOT_CONNECTED = 0;
-    private int currentNetworkConnection = TYPE_NOT_CONNECTED;
-
-
     private DeviceInfo deviceInfo = null;
     /**
      * IP compatibility status
@@ -194,14 +178,6 @@ public class PhoneUtils {
     }
 
     /**
-     * Returns the context previously set with {@link #setGlobalContext}.
-     */
-    public static synchronized Context getGlobalContext() {
-        assert globalContext != null;
-        return globalContext;
-    }
-
-    /**
      * Returns a singleton instance of PhoneUtils. The caller must call
      * {@link #setGlobalContext(Context)} before calling this method.
      */
@@ -213,42 +189,6 @@ public class PhoneUtils {
         }
 
         return singletonPhoneUtils;
-    }
-
-    /**
-     * Returns a string representing this phone:
-     * <p>
-     * "Android_<hardware-type>-<build-release>_<network-type>_" +
-     * "<network-carrier>_<mobile-type>_<Portrait-or-Landscape>"
-     * <p>
-     * hardware-type is e.g. "dream", "passion", "emulator", etc.
-     * build-release is the SDK public release number e.g. "2.0.1" for Eclair.
-     * network-type is e.g. "Wifi", "Edge", "UMTS", "3G".
-     * network-carrier is the mobile carrier name if connected via the SIM card,
-     * or the Wi-Fi SSID if connected via the Wi-Fi.
-     * mobile-type is the phone's mobile network connection type -- "GSM" or "CDMA".
-     * <p>
-     * If the device screen is currently in lanscape mode, "_Landscape" is
-     * appended at the end.
-     * <p>
-     * TODO(klm): This needs to be converted into named URL args from positional,
-     * both here and in the iPhone app. Otherwise it's hard to add extensions,
-     * especially if there is optional stuff like
-     *
-     * @return a string representing this phone
-     */
-    public String generatePhoneId() {
-        String device = Build.DEVICE.equals("generic") ? "emulator" : Build.DEVICE;
-        String network = getNetwork();
-        String carrier = (network == NETWORK_WIFI) ? getWifiCarrierName() : getTelephonyCarrierName();
-
-        StringBuilder stringBuilder = new StringBuilder(ANDROID_STRING);
-        stringBuilder.append('-').append(device).append('_')
-                .append(Build.VERSION.RELEASE).append('_').append(network)
-                .append('_').append(carrier).append('_').append(getTelephonyPhoneType())
-                .append('_').append(isLandscape() ? "Landscape" : "Portrait");
-
-        return stringBuilder.toString();
     }
 
     /**
@@ -310,14 +250,6 @@ public class PhoneUtils {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    //  /** Returns the WiFi network state (NetworkInfo.State) */
-    //  public NetworkInfo.State getNetworkState() {
-    //    initNetwork();
-    //    NetworkInfo networkInfo =
-    //      connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-    //    return networkInfo.getState();
-    //  }
-
     private static final String[] NETWORK_TYPES = {
             "UNKNOWN",  // 0  - NETWORK_TYPE_UNKNOWN
             "GPRS",     // 1  - NETWORK_TYPE_GPRS
@@ -374,19 +306,6 @@ public class PhoneUtils {
     }
 
     /**
-     * Returns current Wi-Fi SSID, or null if Wi-Fi is not connected.
-     */
-    private String getWifiCarrierName() {
-        WifiManager wifiManager =
-                (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        if (wifiInfo != null) {
-            return wifiInfo.getSSID();
-        }
-        return null;
-    }
-
-    /**
      * Returns the information about cell towers in range. Returns null if the information is
      * not available
      * <p>
@@ -429,20 +348,8 @@ public class PhoneUtils {
             criteriaCoarse.setPowerRequirement(Criteria.POWER_LOW);
             String providerName = manager.getBestProvider(criteriaCoarse, true);
 
-            List<String> providers = manager.getAllProviders();
-            for (String providerNameIter : providers) {
-                try {
-                    LocationProvider provider = manager.getProvider(providerNameIter);
-                } catch (SecurityException se) {
-                    // Not allowed to use this provider
-                    Logger.w("Unable to use provider " + providerNameIter);
-                    continue;
-                }
-                Logger.i(providerNameIter + ": " + (manager.isProviderEnabled(providerNameIter) ? "enabled" : "disabled"));
-            }
-
-
-            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
                 // ActivityCompat#requestPermissions here to request the missing permissions, and then overriding
                 //   public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
@@ -451,7 +358,7 @@ public class PhoneUtils {
                 return;
             }
             /* Make sure the provider updates its location. Without this, we may get a very old location, even a
-			 * device powercycle may not update it. {@see android.location.LocationManager.getLastKnownLocation}.
+             * device powercycle may not update it. {@see android.location.LocationManager.getLastKnownLocation}.
 			 */
             manager.requestLocationUpdates(providerName, 0, 0, new LoggingLocationListener(), Looper.getMainLooper());
             locationManager = manager;
@@ -528,15 +435,6 @@ public class PhoneUtils {
     }
 
     /**
-     * Returns true if the phone is in landscape mode.
-     */
-    public boolean isLandscape() {
-        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-        return display.getWidth() > display.getHeight();
-    }
-
-    /**
      * A dummy listener that just logs callbacks.
      */
     private static class LoggingLocationListener implements LocationListener {
@@ -562,51 +460,11 @@ public class PhoneUtils {
         }
     }
 
-    public enum InterfaceType {
-        /**
-         * Local and external interfaces.
-         */
-        ALL,
-
-        /**
-         * Only external interfaces.
-         */
-        EXTERNAL_ONLY,
-    }
-
-    /**
-     * Returns a debug printable representation of a string list.
-     */
-    public static String debugString(List<String> stringList) {
-        StringBuilder result = new StringBuilder("[");
-        Iterator<String> listIter = stringList.iterator();
-        if (listIter.hasNext()) {
-            result.append('"');  // Opening quote for the first string
-            result.append(listIter.next());
-            while (listIter.hasNext()) {
-                result.append("\", \"");
-                result.append(listIter.next());
-            }
-            result.append('"');  // Closing quote for the last string
-        }
-        result.append(']');
-        return result.toString();
-    }
-
-    /**
-     * Returns a debug printable representation of a string array.
-     */
-    public static String debugString(String[] arr) {
-        return debugString(Arrays.asList(arr));
-    }
-
     public String getAppVersionName() {
         try {
             String packageName = context.getPackageName();
             return context.getPackageManager().getPackageInfo(packageName, 0).versionName;
-            //      String versionName = context.getString(R.string.scheduler_version_name);
-            //      Logger.i("Scheduler: version name = " + versionName);
-            //      return versionName;
+
         } catch (Exception e) {
             Logger.e("version name of the application cannot be found", e);
         }
@@ -778,50 +636,6 @@ public class PhoneUtils {
         }
     }
 
-    //  /**
-    //   * Fetches the new connectivity state from the connectivity manager directly.
-    //   */
-    //  private synchronized void updateConnectivityInfo() {
-    //    ConnectivityManager cm = (ConnectivityManager) context
-    //            .getSystemService(Context.CONNECTIVITY_SERVICE);
-    //    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-    //    if (activeNetwork != null) {
-    //      if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
-    //        PhoneUtils.this.currentNetworkConnection = TYPE_WIFI;
-    //        Logger.i("currentNetworkConnection: TYPE_WIFI");
-    //      }
-    //      if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
-    //        PhoneUtils.this.currentNetworkConnection = TYPE_MOBILE;
-    //        Logger.i("currentNetworkConnection: TYPE_MOBILE");
-    //      }
-    //    } else {
-    //      PhoneUtils.this.currentNetworkConnection = TYPE_NOT_CONNECTED;
-    //      Logger.i("currentNetworkConnection: TYPE_NOT_CONNECTED");
-    //    }
-    //  }
-    //
-    //TODO
-    //  /**
-    //   * When alerted that the network connectivity has changed, change the
-    //   * stored connectivity value.
-    //   */
-    //  private class ConnectivityChangeReceiver extends BroadcastReceiver {
-    //
-    ////    public ConnectivityChangeReceiver() {
-    ////      super();
-    ////    }
-    //
-    //    @Override
-    //    public void onReceive(Context context, Intent intent) {
-    //      updateConnectivityInfo();
-    //
-    //    }
-    //  }
-    //
-    //  public synchronized int getCurrentNetworkConnection() {
-    //    return currentNetworkConnection;
-    //  }
-
     private String getVersionStr() {
         return String.format("INCREMENTAL:%s, RELEASE:%s, SDK_INT:%s", Build.VERSION.INCREMENTAL, Build.VERSION.RELEASE, Build.VERSION.SDK_INT);
     }
@@ -887,7 +701,7 @@ public class PhoneUtils {
         }
         Socket tcpSocket = new Socket();
         try {
-            ArrayList<String> hostnameList = MLabNS.Lookup(context, "mobiperf", ip_detect_type, "ip");
+            ArrayList<String> hostnameList = MLabNS.Lookup("mobiperf", ip_detect_type, "ip");
             // MLabNS returns at least one ip address
             if (hostnameList.isEmpty())
                 return IP_TYPE_CANNOT_DECIDE;
@@ -933,7 +747,7 @@ public class PhoneUtils {
             return DN_UNKNOWN;
         }
         try {
-            ArrayList<String> ipAddressList = MLabNS.Lookup(context, "mobiperf", ip_detect_type, "fqdn");
+            ArrayList<String> ipAddressList = MLabNS.Lookup("mobiperf", ip_detect_type, "fqdn");
             String ipAddress;
             // MLabNS returns one fqdn each time
             if (ipAddressList.size() == 1) {
@@ -1014,15 +828,11 @@ public class PhoneUtils {
         // networks (use getPhoneType() to determine if on a CDMA network)
         String networkCountryIso = telephonyManager.getNetworkCountryIso();
 
-//		NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
         String networkType = PhoneUtils.getPhoneUtils().getNetwork();
         String ipConnectivity = "NOT SUPPORTED";
         String dnResolvability = "NOT SUPPORTED";
         Logger.w("IP connectivity is " + ipConnectivity);
         Logger.w("DN resolvability is " + dnResolvability);
-//		if (activeNetwork != null) {
-//			networkType = activeNetwork.getTypeName();
-//		}
         String versionName = PhoneUtils.getPhoneUtils().getAppVersionName();
         PhoneUtils utils = PhoneUtils.getPhoneUtils();
 

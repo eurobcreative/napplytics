@@ -58,9 +58,6 @@ public class APIRequestHandler extends Handler {
             case Config.MSG_SUBMIT_TASK:
                 task = data.getParcelable(UpdateIntent.MEASUREMENT_TASK_PAYLOAD);
                 if (task != null) {
-                    // Hongyi: for delay measurement
-                    //task.getDescription().parameters.put("ts_scheduler_recv", String.valueOf(System.currentTimeMillis()));
-
                     Logger.i("Request Handler: " + clientKey + " submit task " + task.getTaskId());
                     scheduler.submitTask(task);
                 }
@@ -89,7 +86,7 @@ public class APIRequestHandler extends Handler {
                 Logger.i("Request Handler: " + clientKey + " get battery threshold " + batteryThreshold);
                 intent.setAction(UpdateIntent.BATTERY_THRESHOLD_ACTION + "." + clientKey);
                 intent.putExtra(UpdateIntent.BATTERY_THRESHOLD_PAYLOAD, batteryThreshold);
-                sendToClient(intent, clientKey, null);
+                sendToClient(intent, null);
                 break;
 
             case Config.MSG_SET_CHECKIN_INTERVAL:
@@ -107,7 +104,7 @@ public class APIRequestHandler extends Handler {
                 Logger.i("Request Handler: " + clientKey + " get checkin interval " + interval);
                 intent.setAction(UpdateIntent.CHECKIN_INTERVAL_ACTION + "." + clientKey);
                 intent.putExtra(UpdateIntent.CHECKIN_INTERVAL_PAYLOAD, interval);
-                sendToClient(intent, clientKey, null);
+                sendToClient(intent, null);
                 break;
 
             case Config.MSG_GET_TASK_STATUS:
@@ -117,7 +114,7 @@ public class APIRequestHandler extends Handler {
                 intent.setAction(UpdateIntent.TASK_STATUS_ACTION + "." + clientKey);
                 intent.putExtra(UpdateIntent.TASKID_PAYLOAD, taskId);
                 intent.putExtra(UpdateIntent.TASK_STATUS_PAYLOAD, taskStatus);
-                sendToClient(intent, clientKey, taskId);
+                sendToClient(intent, taskId);
                 break;
 
             case Config.MSG_SET_DATA_USAGE:
@@ -135,7 +132,7 @@ public class APIRequestHandler extends Handler {
                 Logger.i("Request Handler: " + clientKey + " get data usage " + profile);
                 intent.setAction(UpdateIntent.DATA_USAGE_ACTION + "." + clientKey);
                 intent.putExtra(UpdateIntent.DATA_USAGE_PAYLOAD, profile);
-                sendToClient(intent, clientKey, taskId);
+                sendToClient(intent, taskId);
                 break;
 
             case Config.MSG_SET_AUTH_ACCOUNT:
@@ -151,7 +148,7 @@ public class APIRequestHandler extends Handler {
                 Logger.i("Request Handler: " + clientKey + " get authenticate account " + account);
                 intent.setAction(UpdateIntent.AUTH_ACCOUNT_ACTION + "." + clientKey);
                 intent.putExtra(UpdateIntent.AUTH_ACCOUNT_PAYLOAD, account);
-                sendToClient(intent, clientKey, taskId);
+                sendToClient(intent, taskId);
                 break;
 
             default:
@@ -159,7 +156,7 @@ public class APIRequestHandler extends Handler {
         }
     }
 
-    private void sendToClient(Intent intent, String clientKey, String taskId) {
+    private void sendToClient(Intent intent, String taskId) {
         if (taskId != null) {
             intent.putExtra(UpdateIntent.TASKID_PAYLOAD, taskId);
         }
