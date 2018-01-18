@@ -12,7 +12,6 @@ import java.util.Date;
  */
 public class Util {
     public static final String HTTP_DESCRIPTOR = "HTTP";
-    public static final String VIDEO_DESCRIPTOR = "VIDEO";
 
     /**
      * Prepare the internal User-Agent string for use. This requires a

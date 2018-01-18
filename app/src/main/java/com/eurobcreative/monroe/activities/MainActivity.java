@@ -132,6 +132,9 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
     public static final String THROUGHPUT_RESULT = "throughput_result";
     public static final String RSSI_RESULT = "rssi_result";
 
+    private static final String WEB_BROWSING_SERVICE = "Web Browsing";
+    private static final String VIDEO_STREAMING_SERVICE = "Video Streaming";
+
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -351,8 +354,8 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
 
         names_sp = (Spinner) findViewById(R.id.names_sp);
         List<String> stringArrayList = new ArrayList<>();
-        stringArrayList.add(com.eurobcreative.monroe.util.Util.HTTP_DESCRIPTOR);
-        stringArrayList.add(com.eurobcreative.monroe.util.Util.VIDEO_DESCRIPTOR);
+        stringArrayList.add(WEB_BROWSING_SERVICE);
+        stringArrayList.add(VIDEO_STREAMING_SERVICE);
         stringArrayAdapter = new ArrayAdapter<>(MainActivity.this, R.layout.support_simple_spinner_dropdown_item, stringArrayList);
         stringArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         names_sp.setAdapter(stringArrayAdapter);
@@ -369,7 +372,7 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
 
                 String selected_item = names_sp.getSelectedItem().toString();
                 switch (selected_item) {
-                    case com.eurobcreative.monroe.util.Util.HTTP_DESCRIPTOR:
+                    case WEB_BROWSING_SERVICE:
                         if (isFinished) {
                             selected_option = HTTP_OPTION;
 
@@ -381,7 +384,7 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
                         }
                         break;
 
-                    case com.eurobcreative.monroe.util.Util.VIDEO_DESCRIPTOR:
+                    case VIDEO_STREAMING_SERVICE:
                         if (isFinished) {
                             selected_option = VIDEO_OPTION;
 
