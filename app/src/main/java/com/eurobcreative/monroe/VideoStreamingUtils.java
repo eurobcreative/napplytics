@@ -1,11 +1,11 @@
 package com.eurobcreative.monroe;
 
-public class VideoUtils {
+public class VideoStreamingUtils {
     private static final String HTTP = "HTTP";
     private static final String RTSP = "RTSP";
 
     public static final String[] urlServerVideoHlsModeArray = {"https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8"};
-    public static final String[] urlServerVideoDashModeArray = {"http://dash.edgesuite.net/dash264/TestCasesMCA/dolby/5/11/Living_Room_720p_51_51_192k_320k_25fps.mpd"};
+    public static final String[] urlVideoStreamingDashModeArray = {"http://dash.edgesuite.net/dash264/TestCasesMCA/dolby/5/11/Living_Room_720p_51_51_192k_320k_25fps.mpd"};
             //"http://www-itec.uni-klu.ac.at/ftp/datasets/DASHDataset2014/OfForestAndMen/15sec/OfForestAndMen_15s_simple_2014_05_09.mpd"};
     public static final String[] urlServerVideoMp4ModeArray = {"http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"};
             /*"http://yt-dash-mse-test.commondatastorage.googleapis.com/media/car-20120827-85.mp4"),*/
@@ -20,7 +20,7 @@ public class VideoUtils {
     public static final int MP4_MODE = 2;
 
     // LTE
-    public static float SIThroughputVideoLTE(long throughput /*Mbps*/) {
+    public static float SIThroughputVideoStreamingLTE(long throughput /*Mbps*/) {
         if (throughput <= 5) {
             return 1.0f;
 
@@ -41,7 +41,7 @@ public class VideoUtils {
         }
     }
 
-    public static float SIRsrpVideoLTE(int rsrp) {
+    public static float SIRsrpVideoStreamingLTE(int rsrp) {
         if (rsrp <= -116) {
             return 1.0f;
 
@@ -62,7 +62,7 @@ public class VideoUtils {
         }
     }
 
-    public static float SIRssiVideoLTE(int rssi) {
+    public static float SIRssiVideoStreamingLTE(int rssi) {
         if (rssi <= -107) {
             return 1.0f;
 
@@ -84,18 +84,18 @@ public class VideoUtils {
     }
 
 
-    public static double calculateVideoHttpLTE(float si_throughput, float si_rsrp, float si_rssi) {
+    public static double calculateVideoStreamingHttpLTE(float si_throughput, float si_rsrp, float si_rssi) {
         return (0.5215 * si_throughput) + (0.5495 * si_rsrp) + (0 * si_rssi);
     }
 
-    public static double calculateVideoRTSPLTE(float si_throughput, float si_rsrp, float si_rssi) {
+    public static double calculateVideoStreamingRTSPLTE(float si_throughput, float si_rsrp, float si_rssi) {
         return (0.8477 * si_throughput) + (0.2404 * si_rsrp) + (0 * si_rssi);
     }
 
 
-    public static String getBetterVideoLTEMode(float si_throughput, float si_rsrp, float si_rssi) {
-        double http_lte = calculateVideoHttpLTE(si_throughput, si_rsrp, si_rssi);
-        double rtsp_lte = calculateVideoRTSPLTE(si_throughput, si_rsrp, si_rssi);
+    public static String getBetterVideoStreamingLTEService(float si_throughput, float si_rsrp, float si_rssi) {
+        double http_lte = calculateVideoStreamingHttpLTE(si_throughput, si_rsrp, si_rssi);
+        double rtsp_lte = calculateVideoStreamingRTSPLTE(si_throughput, si_rsrp, si_rssi);
 
         if (http_lte > rtsp_lte) {
             return HTTP;
@@ -107,7 +107,7 @@ public class VideoUtils {
 
 
     // HSPA
-    public static float SIThroughputVideoHSPA(long throughput /*Mbps*/) {
+    public static float SIThroughputVideoStreamingHSPA(long throughput /*Mbps*/) {
         if (throughput <= 1) {
             return 1.0f;
 
@@ -128,7 +128,7 @@ public class VideoUtils {
         }
     }
 
-    public static float SIRsrpVideoHSPA(int rsrp) {
+    public static float SIRsrpVideoStreamingHSPA(int rsrp) {
         if (rsrp <= -109) {
             return 1.0f;
 
@@ -149,7 +149,7 @@ public class VideoUtils {
         }
     }
 
-    public static float SIRssiVideoHSPA(int rssi) {
+    public static float SIRssiVideoStreamingHSPA(int rssi) {
         if (rssi <= -108) {
             return 1.0f;
 
@@ -171,18 +171,18 @@ public class VideoUtils {
     }
 
 
-    public static double calculateVideoHttpHSPA(float si_throughput, float si_rsrp, float si_rssi) {
+    public static double calculateVideoStreamingHttpHSPA(float si_throughput, float si_rsrp, float si_rssi) {
         return (0.6019 * si_throughput) + (0.5179 * si_rsrp) + (0 * si_rssi);
     }
 
-    public static double calculateVideoRTSPHSPA(float si_throughput, float si_rsrp, float si_rssi) {
+    public static double calculateVideoStreamingRTSPHSPA(float si_throughput, float si_rsrp, float si_rssi) {
         return (0.3799 * si_throughput) + (0.3895 * si_rsrp) + (0 * si_rssi);
     }
 
 
-    public static String getBetterVideoHSPAMode(float si_throughput, float si_rsrp, float si_rssi) {
-        double http_hspa = calculateVideoHttpHSPA(si_throughput, si_rsrp, si_rssi);
-        double rtsp_hspa = calculateVideoRTSPHSPA(si_throughput, si_rsrp, si_rssi);
+    public static String getBetterVideoStreamingHSPAService(float si_throughput, float si_rsrp, float si_rssi) {
+        double http_hspa = calculateVideoStreamingHttpHSPA(si_throughput, si_rsrp, si_rssi);
+        double rtsp_hspa = calculateVideoStreamingRTSPHSPA(si_throughput, si_rsrp, si_rssi);
 
         if (http_hspa > rtsp_hspa) {
             return HTTP;
@@ -193,7 +193,7 @@ public class VideoUtils {
     }
 
 
-    public static String calculateBetterVideoMode(double http, double rtsp) {
+    public static String calculateBetterVideoStreamingService(double http, double rtsp) {
         if (http > rtsp) {
             return HTTP;
 

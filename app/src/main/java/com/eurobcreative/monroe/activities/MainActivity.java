@@ -30,10 +30,10 @@ import android.widget.ListView;
 import android.widget.Spinner;
 
 import com.eurobcreative.monroe.CustomPhoneStateListener;
-import com.eurobcreative.monroe.HttpUtils;
+import com.eurobcreative.monroe.WebBrowsingUtils;
 import com.eurobcreative.monroe.MeasurementTask;
 import com.eurobcreative.monroe.R;
-import com.eurobcreative.monroe.VideoUtils;
+import com.eurobcreative.monroe.VideoStreamingUtils;
 import com.eurobcreative.monroe.api.API;
 import com.eurobcreative.monroe.exceptions.MeasurementError;
 import com.eurobcreative.monroe.util.Logger;
@@ -75,9 +75,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-import static com.eurobcreative.monroe.VideoUtils.HSPA_NETWORK;
-import static com.eurobcreative.monroe.VideoUtils.LTE_NETWORK;
-import static com.eurobcreative.monroe.VideoUtils.urlServerVideoDashModeArray;
+import static com.eurobcreative.monroe.VideoStreamingUtils.HSPA_NETWORK;
+import static com.eurobcreative.monroe.VideoStreamingUtils.LTE_NETWORK;
+import static com.eurobcreative.monroe.VideoStreamingUtils.urlVideoStreamingDashModeArray;
 
 public class MainActivity extends AppCompatActivity implements AdaptiveMediaSourceEventListener,
         BandwidthMeter.EventListener, Player.EventListener, ExtractorMediaSource.EventListener {
@@ -108,9 +108,9 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
     private CustomPhoneStateListener customPhoneStateListener;
 
     // Video
-    private String[] urlServerVideoArray = VideoUtils.urlServerVideoDashModeArray;
+    private String[] urlServerVideoArray = VideoStreamingUtils.urlVideoStreamingDashModeArray;
 
-    private int video_mode = VideoUtils.DASH_MODE;
+    private int video_mode = VideoStreamingUtils.DASH_MODE;
 
     private SimpleExoPlayer player;
 
@@ -122,11 +122,11 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
     private long total_size = 0;
     private long total_ms = 0;
 
-    private static final int HTTP_OPTION = 0;
-    private static final int VIDEO_OPTION = 1;
+    private static final int WEB_BROWSING_OPTION = 0;
+    private static final int VIDEO_STREAMING_OPTION = 1;
     private int selected_option = -1;
 
-    private int network_type = VideoUtils.HSPA_NETWORK;
+    private int network_type = VideoStreamingUtils.HSPA_NETWORK;
 
     public static final String NAPPLYTICS_ACTION = "napplytics_action";
     public static final String THROUGHPUT_RESULT = "throughput_result";
@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             switch (selected_option) {
-                case HTTP_OPTION:
+                case WEB_BROWSING_OPTION:
                     if (action.equals(NAPPLYTICS_ACTION)) {
 
                         if (intent.getLongExtra(THROUGHPUT_RESULT, -1) != -1) {
@@ -164,15 +164,15 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
                                 }
                             }
 
-                            float si_throughput = HttpUtils.SIThroughtputHttp(throughput);
-                            float si_rssi = HttpUtils.SIRssiHttp(rssi);
-                            float si_rsrp = HttpUtils.SIRsrpHttp(rsrp);
+                            float si_throughput = WebBrowsingUtils.SIThroughtputWebBrowsing(throughput);
+                            float si_rssi = WebBrowsingUtils.SIRssiWebBrowsing(rssi);
+                            float si_rsrp = WebBrowsingUtils.SIRsrpWebBrowsing(rsrp);
 
-                            double http1_1 = HttpUtils.calculateHttpHttp1_1(si_throughput, si_rsrp, si_rssi);
-                            double http1_1tls = HttpUtils.calculateHttpHttp1_1TLS(si_throughput, si_rsrp, si_rssi);
-                            double http2 = HttpUtils.calculateHttpHttp2(si_throughput, si_rsrp, si_rssi);
+                            double http1_1 = WebBrowsingUtils.calculateWebBrowsingHttp1_1(si_throughput, si_rsrp, si_rssi);
+                            double http1_1tls = WebBrowsingUtils.calculateWebBrowsingHttp1_1TLS(si_throughput, si_rsrp, si_rssi);
+                            double http2 = WebBrowsingUtils.calculateWebBrowsingHttp2(si_throughput, si_rsrp, si_rssi);
 
-                            String better_http = HttpUtils.getBetterHttpMode(http1_1, http1_1tls, http2);
+                            String better_http = WebBrowsingUtils.getBetterWebBrowsingService(http1_1, http1_1tls, http2);
 
                             long current_timestamp = System.currentTimeMillis();
                             Date current_date = new Date(current_timestamp);
@@ -180,8 +180,10 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
                             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", currentLocale);
                             String date = formatter.format(current_date);
 
+                            DecimalFormat decimalFormatSI = new DecimalFormat("0.0000");
                             DecimalFormat decimalFormat = new DecimalFormat("0.000000");
-                            String result = getResources().getString(R.string.http_result, date, HttpUtils.urlServerHttpArray[counter], throughput, rssi, rsrp,
+                            String result = getResources().getString(R.string.web_browsing_result, date, WebBrowsingUtils.urlWebBrowsingArray[counter], throughput, rssi, rsrp,
+                                    decimalFormatSI.format(si_throughput), decimalFormatSI.format(si_rsrp), decimalFormatSI.format(si_rssi),
                                     decimalFormat.format(http1_1), decimalFormat.format(http1_1tls), decimalFormat.format(http2), better_http);
 
                             arrayAdapter.insert(result, 0);
@@ -200,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
                                 saveData.execute((Void[]) null);
 
                             counter++;
-                            if (counter < HttpUtils.urlServerHttpArray.length && !isFinished) {
+                            if (counter < WebBrowsingUtils.urlWebBrowsingArray.length && !isFinished) {
                                 access = true;
 
                                 // Reset values
@@ -208,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
                                 rssi = 1;
                                 rsrp = 1;
 
-                                callHttp(HttpUtils.urlServerHttpArray[counter]);
+                                callHttp(WebBrowsingUtils.urlWebBrowsingArray[counter]);
 
                             } else {
                                 // Reset counter
@@ -231,7 +233,7 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
                     }
                     break;
 
-                case VIDEO_OPTION:
+                case VIDEO_STREAMING_OPTION:
                     if (action.equals(NAPPLYTICS_ACTION)) {
 
                         if (intent.getIntExtra(RSSI_RESULT, 1) != 1) {
@@ -255,23 +257,23 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
                             double http, rtsp;
 
                             if (network_type == LTE_NETWORK){
-                                si_throughput = VideoUtils.SIThroughputVideoLTE(throughput);
-                                si_rssi = VideoUtils.SIRssiVideoLTE(rssi);
-                                si_rsrp = VideoUtils.SIRsrpVideoLTE(rsrp);
+                                si_throughput = VideoStreamingUtils.SIThroughputVideoStreamingLTE(throughput);
+                                si_rssi = VideoStreamingUtils.SIRssiVideoStreamingLTE(rssi);
+                                si_rsrp = VideoStreamingUtils.SIRsrpVideoStreamingLTE(rsrp);
 
-                                http = VideoUtils.calculateVideoHttpLTE(si_throughput, si_rsrp, si_rssi);
-                                rtsp = VideoUtils.calculateVideoRTSPLTE(si_throughput, si_rsrp, si_rssi);
+                                http = VideoStreamingUtils.calculateVideoStreamingHttpLTE(si_throughput, si_rsrp, si_rssi);
+                                rtsp = VideoStreamingUtils.calculateVideoStreamingRTSPLTE(si_throughput, si_rsrp, si_rssi);
 
                             } else {
-                                si_throughput = VideoUtils.SIThroughputVideoHSPA(throughput);
-                                si_rssi = VideoUtils.SIRssiVideoHSPA(rssi);
-                                si_rsrp = VideoUtils.SIRsrpVideoHSPA(rsrp);
+                                si_throughput = VideoStreamingUtils.SIThroughputVideoStreamingHSPA(throughput);
+                                si_rssi = VideoStreamingUtils.SIRssiVideoStreamingHSPA(rssi);
+                                si_rsrp = VideoStreamingUtils.SIRsrpVideoStreamingHSPA(rsrp);
 
-                                http = VideoUtils.calculateVideoHttpHSPA(si_throughput, si_rsrp, si_rssi);
-                                rtsp = VideoUtils.calculateVideoRTSPHSPA(si_throughput, si_rsrp, si_rssi);
+                                http = VideoStreamingUtils.calculateVideoStreamingHttpHSPA(si_throughput, si_rsrp, si_rssi);
+                                rtsp = VideoStreamingUtils.calculateVideoStreamingRTSPHSPA(si_throughput, si_rsrp, si_rssi);
                             }
 
-                            String better_video = VideoUtils.calculateBetterVideoMode(http, rtsp);
+                            String better_video = VideoStreamingUtils.calculateBetterVideoStreamingService(http, rtsp);
 
                             long current_timestamp = System.currentTimeMillis();
                             Date current_date = new Date(current_timestamp);
@@ -279,10 +281,12 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
                             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", currentLocale);
                             String date = formatter.format(current_date);
 
+                            DecimalFormat decimalFormatSI = new DecimalFormat("0.0000");
                             DecimalFormat decimalFormat = new DecimalFormat("0.000000");
-                            String result = getResources().getString(R.string.video_result, date,
-                                    urlServerVideoArray[counter], VideoUtils.networkTypeArray[network_type], throughput,
-                                    rssi, rsrp, decimalFormat.format(http), decimalFormat.format(rtsp), better_video);
+                            String result = getResources().getString(R.string.video_streaming_result, date,
+                                    urlServerVideoArray[counter], VideoStreamingUtils.networkTypeArray[network_type], throughput, rssi, rsrp,
+                                    decimalFormatSI.format(si_throughput), decimalFormatSI.format(si_rsrp), decimalFormatSI.format(si_rssi),
+                                    decimalFormat.format(http), decimalFormat.format(rtsp), better_video);
                             arrayAdapter.insert(result, 0);
 
                             runOnUiThread(new Runnable() {
@@ -291,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
                                 }
                             });
 
-                            saveData = new SaveData(android_id, "video", VideoUtils.networkTypeArray[counter],
+                            saveData = new SaveData(android_id, "video", VideoStreamingUtils.networkTypeArray[counter],
                                     better_video, throughput, si_throughput, rssi, si_rssi, rsrp,
                                     si_rsrp, current_timestamp);
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
@@ -374,25 +378,25 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
                 switch (selected_item) {
                     case WEB_BROWSING_SERVICE:
                         if (isFinished) {
-                            selected_option = HTTP_OPTION;
+                            selected_option = WEB_BROWSING_OPTION;
 
                             isFinished = false;
 
                             startPhoneStateListener();
 
-                            callHttp(HttpUtils.urlServerHttpArray[counter]);
+                            callHttp(WebBrowsingUtils.urlWebBrowsingArray[counter]);
                         }
                         break;
 
                     case VIDEO_STREAMING_SERVICE:
                         if (isFinished) {
-                            selected_option = VIDEO_OPTION;
+                            selected_option = VIDEO_STREAMING_OPTION;
 
                             isFinished = false;
 
                             startPhoneStateListener();
 
-                            callVideo(urlServerVideoDashModeArray[counter]);
+                            callVideo(urlVideoStreamingDashModeArray[counter]);
                         }
                         break;
                 }
@@ -451,16 +455,16 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
         MediaSource mediaSource = null;
 
         switch (video_mode) {
-            case VideoUtils.HLS_MODE:
+            case VideoStreamingUtils.HLS_MODE:
                 mediaSource = new HlsMediaSource(Uri.parse(url), mediaDataSourceFactory, eventHandler, this);
                 break;
 
-            case VideoUtils.DASH_MODE:
+            case VideoStreamingUtils.DASH_MODE:
                 mediaSource = new DashMediaSource(Uri.parse(url), mediaDataSourceFactory,
                         new DefaultDashChunkSource.Factory(mediaDataSourceFactory), eventHandler, this);
                 break;
 
-            case VideoUtils.MP4_MODE:
+            case VideoStreamingUtils.MP4_MODE:
                 DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
 
                 mediaSource = new ExtractorMediaSource(Uri.parse(url), mediaDataSourceFactory,
@@ -478,12 +482,12 @@ public class MainActivity extends AppCompatActivity implements AdaptiveMediaSour
 
         int currentNetworkType = telephonyManager.getNetworkType();
         if (currentNetworkType == TelephonyManager.NETWORK_TYPE_LTE){
-            network_type = VideoUtils.LTE_NETWORK;
+            network_type = VideoStreamingUtils.LTE_NETWORK;
 
         } else {
-            network_type = VideoUtils.HSPA_NETWORK;
+            network_type = VideoStreamingUtils.HSPA_NETWORK;
         }
-        Log.d("Network_type", VideoUtils.networkTypeArray[network_type]);
+        Log.d("Network_type", VideoStreamingUtils.networkTypeArray[network_type]);
 
         customPhoneStateListener = new CustomPhoneStateListener(this);
         telephonyManager.listen(customPhoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);

@@ -1,15 +1,15 @@
 package com.eurobcreative.monroe;
 
-public class HttpUtils {
+public class WebBrowsingUtils {
     private static final String HTTP1_1 = "HTTP1_1";
     private static final String HTTP2 = "HTTP2";
     private static final String HTTP1_1TLS = "HTTP1_1TLS";
 
-    public static final String[] urlServerHttpArray = {"www.google.es", "www.google.it", "www.google.com"};
+    public static final String[] urlWebBrowsingArray = {"www.google.es", "www.google.it", "www.google.com"};
             //{"https://napplytics.eurobcreative.com", "http://145.239.34.118:8554", "https://napplytics.eurobcreative.com:8080"};
     //public static final String[] protocolsHttpArray = {"HTTP2.0", "HTTP1.1", "HTTP1.1/TLS"};
 
-    public static float SIThroughtputHttp(long throughput) {
+    public static float SIThroughtputWebBrowsing(long throughput) {
         if (throughput <= 0) {
             return 1.0f;
 
@@ -30,7 +30,7 @@ public class HttpUtils {
         }
     }
 
-    public static float SIRsrpHttp(int rsrp) {
+    public static float SIRsrpWebBrowsing(int rsrp) {
         if (rsrp <= -109) {
             return 1.0f;
 
@@ -51,7 +51,7 @@ public class HttpUtils {
         }
     }
 
-    public static float SIRssiHttp(int rssi) {
+    public static float SIRssiWebBrowsing(int rssi) {
         if (rssi <= -81) {
             return 1.0f;
 
@@ -73,23 +73,23 @@ public class HttpUtils {
     }
 
 
-    public static double calculateHttpHttp1_1(float si_throughput, float si_rsrp, float si_rssi) {
+    public static double calculateWebBrowsingHttp1_1(float si_throughput, float si_rsrp, float si_rssi) {
         return (0.275906516431794 * si_throughput) + (0.20608960296224 * si_rsrp) + (0.187881476178343 * si_rssi);
     }
 
-    public static double calculateHttpHttp2(float si_throughput, float si_rsrp, float si_rssi) {
+    public static double calculateWebBrowsingHttp2(float si_throughput, float si_rsrp, float si_rssi) {
         return (0.274590130897324 * si_throughput) + (0.224955809413482 * si_rsrp) + (0.200835527674662 * si_rssi);
     }
 
-    public static double calculateHttpHttp1_1TLS(float si_throughput, float si_rsrp, float si_rssi) {
+    public static double calculateWebBrowsingHttp1_1TLS(float si_throughput, float si_rsrp, float si_rssi) {
         return (0.273217929983119 * si_throughput) + (0.224515432839308 * si_rsrp) + (0.191683339409728 * si_rssi);
     }
 
 
-    public static String betterHttpMode(float si_throughput, float si_rsrp, float si_rssi) {
-        double http1_1 = calculateHttpHttp1_1(si_throughput, si_rsrp, si_rssi);
-        double http2 = calculateHttpHttp2(si_throughput, si_rsrp, si_rssi);
-        double http1_1tls = calculateHttpHttp1_1TLS(si_throughput, si_rsrp, si_rssi);
+    public static String betterWebBrowsingService(float si_throughput, float si_rsrp, float si_rssi) {
+        double http1_1 = calculateWebBrowsingHttp1_1(si_throughput, si_rsrp, si_rssi);
+        double http2 = calculateWebBrowsingHttp2(si_throughput, si_rsrp, si_rssi);
+        double http1_1tls = calculateWebBrowsingHttp1_1TLS(si_throughput, si_rsrp, si_rssi);
 
         if (http1_1 > http2 && http1_1 > http1_1tls) {
             return HTTP1_1;
@@ -102,7 +102,7 @@ public class HttpUtils {
         }
     }
 
-    public static String getBetterHttpMode(double http1_1, double http1_1tls, double http2) {
+    public static String getBetterWebBrowsingService(double http1_1, double http1_1tls, double http2) {
         if (http1_1 > http2 && http1_1 > http1_1tls) {
             return HTTP1_1;
 

@@ -7,11 +7,17 @@
     <string name="userMeasurementFailureToast">The scheduler is busy, please run the measurement later</string>
     <string name="userMeasurementSuccessToast">Measurement is running. Results will show up shortly.</string>
 
-    <string name="http_result">%1$s \nAddress: %2$s \n\nThroughput = %3$d kbps \nRSSI = %4$d dBm \nRSRP = %5$d dBm \n\nThe results obtained are:
-        \nHTTP 1.1 = %6$s \nHTTP 1.1 TLS = %7$s \nHTTP 2 = %8$s \n\nThe best option is: %9$s</string>
+    <string name="web_browsing_result">Web Browsing:\n\n%1$s \nAddress: %2$s
+        \n\nThroughput = %3$d kbps \nRSSI = %4$d dBm \nRSRP = %5$d dBm
+        \n\nSI_Throughput = %6$s \nSI_RSSI = %7$s \nSI_RSRP = %8$s
+        \n\nThe results obtained are:\nHTTP 1.1 = %9$s \nHTTP 1.1 TLS = %10$s \nHTTP 2 = %11$s
+        \n\nThe best option is: %12$s</string>
 
-    <string name="video_result">%1$s \nAddress: %2$s \n\nNetwork type: %3$s \n\nThroughput = %4$d Mbps \nRSSI = %5$d dBm \nRSRP = %6$d dBm \n\nThe results obtained are:
-        \nHTTP = %7$s \nRTSP = %8$s \n\nThe best option is: %9$s</string>
+    <string name="video_streaming_result">Video Streaming:\n\n%1$s \nAddress: %2$s \n\nNetwork type: %3$s
+        \n\nThroughput = %4$d Mbps \nRSSI = %5$d dBm \nRSRP = %6$d dBm
+        \n\nSI_Throughput = %7$s \nSI_RSSI = %8$s \nSI_RSRP = %9$s
+        \n\nThe results obtained are:\nHTTP = %10$s \nRTSP = %11$s
+        \n\nThe best option is: %12$s</string>
 
     <string name="service">Service:</string>
     <string name="url">URL:</string>
